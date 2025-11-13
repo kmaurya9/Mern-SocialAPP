@@ -9,6 +9,15 @@ import { User } from "./models/userModel.js";
 import { app, server } from "./socket/socket.js";
 import path from "path";
 import axios from 'axios';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from parent directory
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+console.log("Environment check - TMDB_API_KEY exists:", !!process.env.TMDB_API_KEY);
 
 const url = `https://mern-social-3e3m.onrender.com`;
 const interval = 30000;
@@ -32,8 +41,6 @@ function reloadWebsite() {
 }
 
 setInterval(reloadWebsite, interval);
-
-dotenv.config();
 
 cloudinary.v2.config({
   cloud_name: process.env.Cloudinary_Cloud_Name,
@@ -96,19 +103,25 @@ import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import movieRoutes from "./routes/movieRoutes.js";
+import roleProfileRoutes from "./routes/roleProfileRoutes.js";
 
 //using routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/movies", movieRoutes);
+app.use("/api/profile", roleProfileRoutes);
 
-const __dirname = path.resolve();
+const rootDir = path.resolve();
 
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
+// Serve static files
+app.use(express.static(path.join(rootDir, "/frontend/dist")));
 
+// Catch-all route for frontend (but not for /api routes)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+  res.sendFile(path.join(rootDir, "frontend", "dist", "index.html"));
 });
 
 server.listen(port, () => {

@@ -1,4 +1,5 @@
 import { Post } from "../models/postModel.js";
+import { Like } from "../models/LikeModel.js";
 import TryCatch from "../utils/Trycatch.js";
 import getDataUrl from "../utils/urlGenrator.js";
 import cloudinary from "cloudinary";
@@ -90,20 +91,34 @@ export const likeUnlikePost = TryCatch(async (req, res) => {
       message: "No Post with this id",
     });
 
+  // Add to Like model (many-to-many)
+  const existingLike = await Like.findOne({
+    post: req.params.id,
+    user: req.user._id,
+  });
+
   if (post.likes.includes(req.user._id)) {
+    // Unlike - remove from both Post array and Like model
     const index = post.likes.indexOf(req.user._id);
-
     post.likes.splice(index, 1);
-
     await post.save();
+
+    if (existingLike) {
+      await Like.deleteOne({ _id: existingLike._id });
+    }
 
     res.json({
       message: "Post Unlike",
     });
   } else {
+    // Like - add to both Post array and Like model
     post.likes.push(req.user._id);
-
     await post.save();
+
+    await Like.create({
+      post: req.params.id,
+      user: req.user._id,
+    });
 
     res.json({
       message: "Post liked",

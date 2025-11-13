@@ -1,5 +1,6 @@
 import TryCatch from "../utils/Trycatch.js";
 import { User } from "../models/userModel.js";
+import { Follow } from "../models/FollowModel.js";
 import getDataUrl from "../utils/urlGenrator.js";
 import cloudinary from "cloudinary";
 import bcrypt from "bcrypt";
@@ -36,6 +37,7 @@ export const followandUnfollowUser = TryCatch(async (req, res) => {
     });
 
   if (user.followers.includes(loggedInUser._id)) {
+    // Unfollow - remove from both User arrays and Follow model
     const indexFollowing = loggedInUser.followings.indexOf(user._id);
     const indexFollower = user.followers.indexOf(loggedInUser._id);
 
@@ -45,15 +47,28 @@ export const followandUnfollowUser = TryCatch(async (req, res) => {
     await loggedInUser.save();
     await user.save();
 
+    // Also remove from Follow model
+    await Follow.deleteOne({
+      follower: loggedInUser._id,
+      following: user._id,
+    });
+
     res.json({
       message: "User Unfollowed",
     });
   } else {
+    // Follow - add to both User arrays and Follow model
     loggedInUser.followings.push(user._id);
     user.followers.push(loggedInUser._id);
 
     await loggedInUser.save();
     await user.save();
+
+    // Also create in Follow model
+    await Follow.create({
+      follower: loggedInUser._id,
+      following: user._id,
+    });
 
     res.json({
       message: "User Followed",
@@ -122,5 +137,40 @@ export const updatePassword = TryCatch(async (req, res) => {
 
   res.json({
     message: "Password Updated",
+  });
+});
+
+export const getAllUsers = TryCatch(async (req, res) => {
+  const { search } = req.query;
+  
+  let query = {};
+  if (search) {
+    // Search by name or email
+    query = {
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } }
+      ]
+    };
+  }
+  
+  const users = await User.find(query).select("-password");
+  res.json(users);
+});
+
+export const updateUserRole = TryCatch(async (req, res) => {
+  const { role } = req.body;
+  const userId = req.params.id;
+
+  const validRoles = ['viewer', 'curator', 'admin'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: "Invalid role" });
+  }
+
+  const user = await User.findByIdAndUpdate(userId, { role }, { new: true }).select("-password");
+
+  res.json({
+    message: "Role updated successfully",
+    user,
   });
 });

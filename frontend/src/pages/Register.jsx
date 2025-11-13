@@ -8,6 +8,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [gender, setGender] = useState("");
+  const [role, setRole] = useState("viewer");
   const [file, setFile] = useState("");
   const [filePrev, setFilePrev] = useState("");
 
@@ -37,6 +38,7 @@ const Register = () => {
     formdata.append("email", email);
     formdata.append("password", password);
     formdata.append("gender", gender);
+    formdata.append("role", role);
     formdata.append("file", file);
 
     registerUser(formdata, navigate, fetchPosts);
@@ -69,7 +71,6 @@ const Register = () => {
                     className="custom-input"
                     onChange={changeFileHandler}
                     accept="image/*"
-                    required
                   />
                   <input
                     type="text"
@@ -104,6 +105,16 @@ const Register = () => {
                     <option value="">Select Gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
+                  </select>
+                  <select
+                    className="custom-input"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    required
+                  >
+                    <option value="viewer">Viewer - Browse movies & write reviews</option>
+                    <option value="curator">Curator - Manage lists & recommendations</option>
+                    <option value="admin">Admin - Manage platform</option>
                   </select>
                 </div>
                 <div className="text-center mt-7">

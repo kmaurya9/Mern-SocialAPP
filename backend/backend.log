@@ -1,0 +1,7 @@
+Environment check - TMDB_API_KEY exists: true
+Server is running on http://localhost:3000
+Connected To MongoDb
+Searching TMDB for: inception
+Error reloading at 2025-11-05T13:17:43.496Z: Request failed with status code 404
+Error reloading at 2025-11-05T13:18:13.382Z: Request failed with status code 404
+Error reloading at 2025-11-05T13:18:43.348Z: Request failed with status code 404

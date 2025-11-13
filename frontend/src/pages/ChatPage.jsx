@@ -49,7 +49,7 @@ const ChatPage = ({ user }) => {
 
   const { onlineUsers, socket } = SocketData();
   return (
-    <div className="w-[100%] md:w-[750px] md:p-4">
+    <div className="w-[100%] md:w-[750px] md:p-4 pt-20 pb-20">
       <div className="flex gap-4 mx-auto">
         <div className="w-[30%]">
           <div className="top">

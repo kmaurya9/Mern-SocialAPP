@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
-import { FaArrowDownLong, FaArrowUp } from "react-icons/fa6";
 import axios from "axios";
 import { Loading } from "../components/Loading";
 import { UserData } from "../context/UserContext";
@@ -12,7 +11,7 @@ import { SocketData } from "../context/SocketContext";
 const UserAccount = ({ user: loggedInUser }) => {
   const navigate = useNavigate();
 
-  const { posts, reels } = PostData();
+  const { posts } = PostData();
 
   const [user, setUser] = useState([]);
 
@@ -43,30 +42,6 @@ const UserAccount = ({ user: loggedInUser }) => {
   if (posts) {
     myPosts = posts.filter((post) => post.owner._id === user._id);
   }
-  let myReels;
-
-  if (reels) {
-    myReels = reels.filter((reel) => reel.owner._id === user._id);
-  }
-
-  const [type, setType] = useState("post");
-
-  const [index, setIndex] = useState(0);
-
-  const prevReel = () => {
-    if (index === 0) {
-      console.log("null");
-      return null;
-    }
-    setIndex(index - 1);
-  };
-  const nextReel = () => {
-    if (index === myReels.length - 1) {
-      console.log("null");
-      return null;
-    }
-    setIndex(index + 1);
-  };
 
   const [followed, setFollowed] = useState(false);
 
@@ -113,6 +88,15 @@ const UserAccount = ({ user: loggedInUser }) => {
         <>
           {user && (
             <>
+              {/* Breadcrumb Navigation */}
+              <div className="bg-white border-b border-gray-200 px-4 py-3 pt-20">
+                <nav className="max-w-7xl mx-auto flex items-center gap-2 text-sm" aria-label="Breadcrumb">
+                  <Link to="/" className="text-blue-600 hover:text-blue-800">Home</Link>
+                  <span className="text-gray-400">›</span>
+                  <span className="text-gray-600">{user.name}</span>
+                </nav>
+              </div>
+              
               <div className="bg-gray-100 min-h-screen flex flex-col gap-4 items-center justify-center pt-3 pb-14">
                 {show && (
                   <Modal
@@ -178,58 +162,12 @@ const UserAccount = ({ user: loggedInUser }) => {
                   </div>
                 </div>
 
-                <div className="controls flex justify-center items-center bg-white p-4 rounded-md gap-7">
-                  <button onClick={() => setType("post")}>Posts</button>
-                  <button onClick={() => setType("reel")}>Reels</button>
-                </div>
-
-                {type === "post" && (
-                  <>
-                    {myPosts && myPosts.length > 0 ? (
-                      myPosts.map((e) => (
-                        <PostCard type={"post"} value={e} key={e._id} />
-                      ))
-                    ) : (
-                      <p>No Post Yet</p>
-                    )}
-                  </>
-                )}
-                {type === "reel" && (
-                  <>
-                    {myReels && myReels.length > 0 ? (
-                      <div className="flex gap-3 justify-center items-center">
-                        <PostCard
-                          type={"reel"}
-                          value={myReels[index]}
-                          key={myReels[index]._id}
-                        />
-                        <div className="button flex flex-col justify-center items-center gap-6">
-                          {index === 0 ? (
-                            ""
-                          ) : (
-                            <button
-                              className="bg-gray-500 text-white py-5 px-5 rounded-full"
-                              onClick={prevReel}
-                            >
-                              <FaArrowUp />
-                            </button>
-                          )}
-                          {index === myReels.length - 1 ? (
-                            ""
-                          ) : (
-                            <button
-                              className="bg-gray-500 text-white py-5 px-5 rounded-full"
-                              onClick={nextReel}
-                            >
-                              <FaArrowDownLong />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <p>No Reels Yet</p>
-                    )}
-                  </>
+                {myPosts && myPosts.length > 0 ? (
+                  myPosts.map((e) => (
+                    <PostCard type={"post"} value={e} key={e._id} />
+                  ))
+                ) : (
+                  <p>No Post Yet</p>
                 )}
               </div>
             </>

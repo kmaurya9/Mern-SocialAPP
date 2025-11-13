@@ -3,64 +3,36 @@ import { useNavigate } from "react-router-dom";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
-import { FaArrowDownLong, FaArrowUp } from "react-icons/fa6";
 import Modal from "../components/Modal";
 import axios from "axios";
 import { Loading } from "../components/Loading";
 import { CiEdit } from "react-icons/ci";
-import toast from "react-hot-toast";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-
   const { logoutUser, updateProfilePic, updateProfileName } = UserData();
+  const { posts, loading } = PostData();
 
-  const { posts, reels, loading } = PostData();
-
-  let myPosts;
-
-  if (posts) {
-    myPosts = posts.filter((post) => post.owner._id === user._id);
-  }
-  let myReels;
-
-  if (reels) {
-    myReels = reels.filter((reel) => reel.owner._id === user._id);
-  }
-
-  const [type, setType] = useState("post");
-
-  const logoutHandler = () => {
-    logoutUser(navigate);
-  };
-
-  const [index, setIndex] = useState(0);
-
-  const prevReel = () => {
-    if (index === 0) {
-      console.log("null");
-      return null;
-    }
-    setIndex(index - 1);
-  };
-  const nextReel = () => {
-    if (index === myReels.length - 1) {
-      console.log("null");
-      return null;
-    }
-    setIndex(index + 1);
-  };
-
+  // Initialize state properly
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
-
   const [followersData, setFollowersData] = useState([]);
   const [followingsData, setFollowingsData] = useState([]);
+  const [file, setFile] = useState("");
+  const [showInput, setShowInput] = useState(false);
+  const [name, setName] = useState("");
 
+  // Get my posts
+  let myPosts = [];
+
+  if (user && posts && posts.length > 0) {
+    myPosts = posts.filter((post) => post.owner._id === user._id);
+  }
+
+  // Load follow data
   async function followData() {
     try {
       const { data } = await axios.get("/api/user/followdata/" + user._id);
-
       setFollowersData(data.followers);
       setFollowingsData(data.followings);
     } catch (error) {
@@ -68,7 +40,12 @@ const Account = ({ user }) => {
     }
   }
 
-  const [file, setFile] = useState("");
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      followData();
+    }
+  }, [user]);
 
   const changeFileHandler = (e) => {
     const file = e.target.files[0];
@@ -77,240 +54,177 @@ const Account = ({ user }) => {
 
   const changleImageHandler = () => {
     const formdata = new FormData();
-
     formdata.append("file", file);
-
     updateProfilePic(user._id, formdata, setFile);
   };
-
-  useEffect(() => {
-    followData();
-  }, [user]);
-
-  const [showInput, setShowInput] = useState(false);
-  const [name, setName] = useState(user.name ? user.name : "");
 
   const UpdateName = () => {
     updateProfileName(user._id, name, setShowInput);
   };
 
-  const [showUpdatePass, setShowUpdatePass] = useState(false);
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const logoutHandler = () => {
+    logoutUser(navigate);
+  };
 
-  async function updatePassword(e) {
-    e.preventDefault();
-    try {
-      const { data } = await axios.post("/api/user/" + user._id, {
-        oldPassword,
-        newPassword,
-      });
-
-      toast.success(data.message);
-      setOldPassword("");
-      setNewPassword("");
-      setShowUpdatePass(false);
-    } catch (error) {
-      toast.error(error.response.data.message);
-    }
+  if (loading) {
+    return <Loading />;
   }
+
+  if (!user) {
+    return (
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        <p>Please log in to view your profile</p>
+      </div>
+    );
+  }
+
   return (
-    <>
-      {loading ? (
-        <Loading />
-      ) : (
-        <>
-          {user && (
-            <>
-              {loading ? (
-                <Loading />
-              ) : (
-                <div className="bg-gray-100 min-h-screen flex flex-col gap-4 items-center justify-center pt-3 pb-14">
-                  {show && (
-                    <Modal
-                      value={followersData}
-                      title={"Followers"}
-                      setShow={setShow}
-                    />
-                  )}
-                  {show1 && (
-                    <Modal
-                      value={followingsData}
-                      title={"Followings"}
-                      setShow={setShow1}
-                    />
-                  )}
-                  <div className="bg-white flex justify-between gap-4 p-8 rounded-lg shadow-md max-w-md">
-                    <div className="image flex flex-col justify-between mb-4 gap-4">
-                      <img
-                        src={user.profilePic.url}
-                        alt=""
-                        className="w-[180px] h-[180px] rounded-full"
-                      />
-                      <div className="update w-[150px] flex flex-col justify-center items-center">
-                        <input
-                          type="file"
-                          onChange={changeFileHandler}
-                          required
-                        />
-                        <button
-                          className="bg-blue-500 text-white px-3 py-2"
-                          onClick={changleImageHandler}
-                        >
-                          Update Profile
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      {showInput ? (
-                        <>
-                          <div className="flex justify-center items-center gap-2">
-                            <input
-                              className="custom-input"
-                              style={{ width: "80px" }}
-                              value={name}
-                              onChange={(e) => setName(e.target.value)}
-                              placeholder="Enter Name"
-                              required
-                            />
-                            <button onClick={UpdateName}>Update</button>
-                            <button
-                              onClick={() => setShowInput(false)}
-                              className="bg-red-400 text-white p-2 rounded-full"
-                            >
-                              X
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-gray-800 font-semibold">
-                          {user.name}{" "}
-                          <button onClick={() => setShowInput(true)}>
-                            <CiEdit />
-                          </button>
-                        </p>
-                      )}
-                      <p className="text-gray-500 text-sm">{user.email}</p>
-                      <p className="text-gray-500 text-sm">{user.gender}</p>
-                      <p
-                        className="text-gray-500 text-sm cursor-pointer"
-                        onClick={() => setShow(true)}
-                      >
-                        {user.followers.length} follower
-                      </p>
-                      <p
-                        className="text-gray-500 text-sm cursor-pointer"
-                        onClick={() => setShow1(true)}
-                      >
-                        {user.followings.length} following
-                      </p>
-                      <button
-                        onClick={logoutHandler}
-                        className=" bg-red-500 text-white rounded-md"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setShowUpdatePass(!showUpdatePass)}
-                    className="bg-blue-500 px-2 py-1 rounded-sm text-white"
-                  >
-                    {showUpdatePass ? "X" : "Update Password"}
-                  </button>
-
-                  {showUpdatePass && (
-                    <form
-                      onSubmit={updatePassword}
-                      className="flex justify-center items-center flex-col bg-white p-2 rounded-sm gap-4"
-                    >
-                      <input
-                        type="password"
-                        className="custom-input"
-                        placeholder="Old Password"
-                        value={oldPassword}
-                        onChange={(e) => setOldPassword(e.target.value)}
-                        required
-                      />
-                      <input
-                        type="password"
-                        className="custom-input"
-                        placeholder="new Password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                      />
-                      <button
-                        type="submit"
-                        className="bg-blue-500 px-2 py-1 rounded-sm text-white"
-                      >
-                        Update Password
-                      </button>
-                    </form>
-                  )}
-
-                  <div className="controls flex justify-center items-center bg-white p-4 rounded-md gap-7">
-                    <button onClick={() => setType("post")}>Posts</button>
-                    <button onClick={() => setType("reel")}>Reels</button>
-                  </div>
-
-                  {type === "post" && (
-                    <>
-                      {myPosts && myPosts.length > 0 ? (
-                        myPosts.map((e) => (
-                          <PostCard type={"post"} value={e} key={e._id} />
-                        ))
-                      ) : (
-                        <p>No Post Yet</p>
-                      )}
-                    </>
-                  )}
-                  {type === "reel" && (
-                    <>
-                      {myReels && myReels.length > 0 ? (
-                        <div className="flex gap-3 justify-center items-center">
-                          <PostCard
-                            type={"reel"}
-                            value={myReels[index]}
-                            key={myReels[index]._id}
-                          />
-                          <div className="button flex flex-col justify-center items-center gap-6">
-                            {index === 0 ? (
-                              ""
-                            ) : (
-                              <button
-                                className="bg-gray-500 text-white py-5 px-5 rounded-full"
-                                onClick={prevReel}
-                              >
-                                <FaArrowUp />
-                              </button>
-                            )}
-                            {index === myReels.length - 1 ? (
-                              ""
-                            ) : (
-                              <button
-                                className="bg-gray-500 text-white py-5 px-5 rounded-full"
-                                onClick={nextReel}
-                              >
-                                <FaArrowDownLong />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <p>No Reels Yet</p>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </>
+    <div className="bg-gray-50 min-h-screen pt-20 pb-20">
+      {show && (
+        <Modal
+          value={followersData}
+          title={"Followers"}
+          setShow={setShow}
+        />
       )}
-    </>
+      {show1 && (
+        <Modal
+          value={followingsData}
+          title={"Followings"}
+          setShow={setShow1}
+        />
+      )}
+
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Profile Header */}
+        <div className="bg-white rounded-lg shadow-md p-8 mb-6">
+          <div className="flex flex-col md:flex-row gap-8 items-start">
+            {/* Profile Picture Section */}
+            <div className="flex flex-col items-center gap-4">
+              <img
+                src={user.profilePic?.url}
+                alt={user.name}
+                className="w-40 h-40 rounded-full border-4 border-blue-500 object-cover"
+              />
+              <div className="w-full">
+                <input
+                  type="file"
+                  onChange={changeFileHandler}
+                  className="block w-full text-sm border border-gray-300 rounded px-2 py-1"
+                />
+                <button
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-2 transition"
+                  onClick={changleImageHandler}
+                >
+                  Update Picture
+                </button>
+              </div>
+            </div>
+
+            {/* User Info Section */}
+            <div className="flex-1 space-y-4">
+              {/* Name */}
+              <div>
+                <label className="text-gray-600 text-sm font-semibold">Name</label>
+                {showInput ? (
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      className="flex-1 border border-gray-300 rounded px-3 py-2"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter Name"
+                    />
+                    <button
+                      onClick={UpdateName}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setShowInput(false)}
+                      className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-gray-900 font-semibold text-lg">{user.name}</p>
+                    <button
+                      onClick={() => setShowInput(true)}
+                      className="text-blue-500 hover:text-blue-700 transition"
+                    >
+                      <CiEdit size={24} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-gray-600 text-sm font-semibold">Email</label>
+                <p className="text-gray-700 mt-1">{user.email}</p>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="text-gray-600 text-sm font-semibold">Gender</label>
+                <p className="text-gray-700 mt-1 capitalize">{user.gender}</p>
+              </div>
+
+              {/* Role */}
+              <div>
+                <label className="text-gray-600 text-sm font-semibold">Role</label>
+                <p className="text-gray-700 mt-1 capitalize bg-blue-50 inline-block px-3 py-1 rounded text-blue-800 font-semibold">{user.role}</p>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                <div className="text-center cursor-pointer hover:bg-gray-50 p-2 rounded" onClick={() => setShow(true)}>
+                  <p className="text-2xl font-bold text-blue-600">{user.followers?.length || 0}</p>
+                  <p className="text-gray-600 text-sm">Followers</p>
+                </div>
+                <div className="text-center cursor-pointer hover:bg-gray-50 p-2 rounded" onClick={() => setShow1(true)}>
+                  <p className="text-2xl font-bold text-blue-600">{user.followings?.length || 0}</p>
+                  <p className="text-gray-600 text-sm">Following</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-blue-600">{myPosts.length}</p>
+                  <p className="text-gray-600 text-sm">Posts</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          {/* Posts */}
+          <div className="space-y-4">
+            {myPosts && myPosts.length > 0 ? (
+              myPosts.map((post) => (
+                <PostCard key={post._id} value={post} type="post" />
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No posts yet</p>
+                <p className="text-gray-400 text-sm mt-2">Share your first post to get started</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Logout Button */}
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={logoutHandler}
+            className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-semibold transition"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -7,14 +7,18 @@ import {
   updateProfile,
   userFollowerandFollowingData,
   userProfile,
+  getAllUsers,
+  updateUserRole,
 } from "../controllers/userControllers.js";
 import uploadFile from "../middlewares/multer.js";
 
 const router = express.Router();
 
+router.get("/all", isAuth, getAllUsers);
 router.get("/me", isAuth, myProfile);
 router.get("/:id", isAuth, userProfile);
 router.post("/:id", isAuth, updatePassword);
+router.put("/role/:id", isAuth, updateUserRole);
 router.put("/:id", isAuth, uploadFile, updateProfile);
 router.post("/follow/:id", isAuth, followandUnfollowUser);
 router.get("/followdata/:id", isAuth, userFollowerandFollowingData);

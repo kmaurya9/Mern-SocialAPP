@@ -5,7 +5,7 @@ import toast, { Toaster } from "react-hot-toast";
 const UserContext = createContext();
 
 export const UserContextProvider = ({ children }) => {
-  const [user, setUser] = useState([]);
+  const [user, setUser] = useState(null);
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -17,11 +17,11 @@ export const UserContextProvider = ({ children }) => {
       toast.success(data.message);
       setIsAuth(true);
       setUser(data.user);
-      navigate("/");
       setLoading(false);
       fetchPosts();
+      navigate("/");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Registration failed");
       setLoading(false);
     }
   }
@@ -55,7 +55,9 @@ export const UserContextProvider = ({ children }) => {
       setIsAuth(true);
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      // User not authenticated - this is expected on first load if not logged in
+      console.log("User not authenticated:", error.response?.status);
+      setUser(null);
       setIsAuth(false);
       setLoading(false);
     }
@@ -67,7 +69,7 @@ export const UserContextProvider = ({ children }) => {
 
       if (data.message) {
         toast.success(data.message);
-        setUser([]);
+        setUser(null);
         setIsAuth(false);
         navigate("/login");
       }

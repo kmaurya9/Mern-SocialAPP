@@ -20,6 +20,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       enum: ["male", "female"],
     },
+    role: {
+      type: String,
+      required: true,
+      enum: ["viewer", "curator", "admin"],
+      default: "viewer",
+    },
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,

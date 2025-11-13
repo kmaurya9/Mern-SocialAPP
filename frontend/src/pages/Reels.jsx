@@ -1,71 +1,13 @@
-import React, { useState } from "react";
-import AddPost from "../components/AddPost";
-import { PostData } from "../context/PostContext";
-import PostCard from "../components/PostCard";
-import { FaArrowUp, FaArrowDownLong } from "react-icons/fa6";
-import { Loading } from "../components/Loading";
+import React from "react";
 
 const Reels = () => {
-  const { reels, loading } = PostData();
-  const [index, setIndex] = useState(0);
-
-  const prevReel = () => {
-    if (index === 0) {
-      console.log("null");
-      return null;
-    }
-    setIndex(index - 1);
-  };
-  const nextReel = () => {
-    if (index === reels.length - 1) {
-      console.log("null");
-      return null;
-    }
-    setIndex(index + 1);
-  };
   return (
-    <>
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="bg-gray-100">
-          <AddPost type="reel" />
-          <div className="flex m-auto gap-3 w-[300px] md:w-[500px]">
-            {reels && reels.length > 0 ? (
-              <PostCard
-                key={reels[index]._id}
-                value={reels[index]}
-                type={"reel"}
-              />
-            ) : (
-              <p>No reels yet</p>
-            )}
-            <div className="button flex flex-col justify-center items-center gap-6">
-              {index === 0 ? (
-                ""
-              ) : (
-                <button
-                  className="bg-gray-500 text-white py-5 px-5 rounded-full"
-                  onClick={prevReel}
-                >
-                  <FaArrowUp />
-                </button>
-              )}
-              {index === reels.length - 1 ? (
-                ""
-              ) : (
-                <button
-                  className="bg-gray-500 text-white py-5 px-5 rounded-full"
-                  onClick={nextReel}
-                >
-                  <FaArrowDownLong />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    <div className="bg-gray-50 min-h-screen pt-20 pb-20 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">Reels</h1>
+        <p className="text-gray-600 text-lg">Reel functionality has been disabled</p>
+      </div>
+    </div>
   );
 };
 

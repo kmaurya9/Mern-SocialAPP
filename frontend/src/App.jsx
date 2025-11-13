@@ -6,12 +6,16 @@ import Register from "./pages/Register";
 import { UserData } from "./context/UserContext";
 import Account from "./pages/Account";
 import NavigationBar from "./components/NavigationBar";
+import PublicNav from "./components/PublicNav";
 import NotFound from "./components/NotFound";
-import Reels from "./pages/Reels";
 import { Loading } from "./components/Loading";
 import UserAccount from "./pages/UserAccount";
 import Search from "./pages/Search";
 import ChatPage from "./pages/ChatPage";
+import MovieDetails from "./pages/MovieDetails";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CuratorDashboard from "./pages/CuratorDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const App = () => {
   const { loading, isAuth, user } = UserData();
@@ -22,32 +26,49 @@ const App = () => {
         <Loading />
       ) : (
         <BrowserRouter>
+          {/* Show public nav for anonymous users, bottom nav for logged-in users */}
+          {!isAuth && <PublicNav />}
+          
           <Routes>
-            <Route path="/" element={isAuth ? <Home /> : <Login />} />
-            <Route path="/reels" element={isAuth ? <Reels /> : <Login />} />
+            {/* Public routes - accessible without login */}
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/details/:id" element={<MovieDetails />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            
+            {/* Auth routes */}
+            <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
+            <Route
+              path="/register"
+              element={!isAuth ? <Register /> : <Home />}
+            />
+            
+            {/* Protected routes - require login */}
+            <Route
+              path="/profile"
+              element={isAuth ? <Account user={user} /> : <Login />}
+            />
+            <Route
+              path="/profile/:id"
+              element={<UserAccount user={user} />}
+            />
+            <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
+            
+            {/* Role-based routes */}
+            <Route path="/curator" element={isAuth ? <CuratorDashboard /> : <Login />} />
+            <Route path="/admin" element={isAuth ? <AdminDashboard /> : <Login />} />
+            
+            {/* Legacy route - redirect for backwards compatibility */}
             <Route
               path="/account"
               element={isAuth ? <Account user={user} /> : <Login />}
             />
             <Route
               path="/user/:id"
-              element={isAuth ? <UserAccount user={user} /> : <Login />}
+              element={<UserAccount user={user} />}
             />
-            <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
-            <Route
-              path="/register"
-              element={!isAuth ? <Register /> : <Home />}
-            />
+            
             <Route path="*" element={<NotFound />} />
-            <Route
-              path="/register"
-              element={!isAuth ? <Register /> : <Home />}
-            />
-            <Route path="/search" element={isAuth ? <Search /> : <Login />} />
-            <Route
-              path="/chat"
-              element={isAuth ? <ChatPage user={user} /> : <Login />}
-            />
           </Routes>
           {isAuth && <NavigationBar />}
         </BrowserRouter>

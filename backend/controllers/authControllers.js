@@ -6,38 +6,55 @@ import bcrypt from "bcrypt";
 import cloudinary from "cloudinary";
 
 export const registerUser = TryCatch(async (req, res) => {
-  const { name, email, password, gender } = req.body;
+  const { name, email, password, gender, role } = req.body;
 
   const file = req.file;
 
-  if (!name || !email || !password || !gender || !file) {
+  if (!name || !email || !password || !gender) {
     return res.status(400).json({
       message: "Please give all values",
     });
   }
 
+  // Check if email already exists
   let user = await User.findOne({ email });
 
   if (user)
     return res.status(400).json({
-      message: "User Already Exist",
+      message: "Email already registered. Please use a different email.",
     });
 
-  const fileUrl = getDataUrl(file);
+  // Check if name (username) already exists
+  let userWithName = await User.findOne({ name });
+
+  if (userWithName)
+    return res.status(400).json({
+      message: "Username already taken. Please choose a different name.",
+    });
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content);
+  const profilePic = {};
+
+  // Only upload if file is provided
+  if (file) {
+    const fileUrl = getDataUrl(file);
+    const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content);
+    profilePic.id = myCloud.public_id;
+    profilePic.url = myCloud.secure_url;
+  } else {
+    // Use default profile picture
+    profilePic.id = "default";
+    profilePic.url = "https://via.placeholder.com/200";
+  }
 
   user = await User.create({
     name,
     email,
     password: hashPassword,
     gender,
-    profilePic: {
-      id: myCloud.public_id,
-      url: myCloud.secure_url,
-    },
+    role: role || "viewer",
+    profilePic,
   });
 
   generateToken(user._id, res);
