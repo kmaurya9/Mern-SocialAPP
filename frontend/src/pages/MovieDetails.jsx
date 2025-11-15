@@ -77,7 +77,7 @@ const MovieDetails = () => {
   return (
     <div className="bg-gray-100 min-h-screen pb-20">
       {/* Breadcrumb Navigation */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 pt-20">
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-7xl mx-auto">
           <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
             <Link to="/" className="text-blue-600 hover:text-blue-800">Home</Link>
@@ -99,7 +99,7 @@ const MovieDetails = () => {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto px-4 -mt-32 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 relative z-10 pt-8">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Poster */}
           <div className="flex-shrink-0">
