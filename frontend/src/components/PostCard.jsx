@@ -19,10 +19,10 @@ const PostCard = ({ type, value }) => {
   const { user } = UserData();
   const { likePost, addComment, deletePost, loading, fetchPosts } = PostData();
 
-  const formatDate = format(new Date(value.createdAt), "MMMM do");
+  const formatDate = value?.createdAt ? format(new Date(value.createdAt), "MMMM do") : "";
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !value?.likes) return;
     for (let i = 0; i < value.likes.length; i++) {
       if (value.likes[i] === user._id) setIsLike(true);
     }
@@ -30,15 +30,14 @@ const PostCard = ({ type, value }) => {
 
   const likeHandler = () => {
     setIsLike(!isLike);
-
-    likePost(value._id);
+    if (value?._id) likePost(value._id);
   };
 
   const [comment, setComment] = useState("");
 
   const addCommentHandler = (e) => {
     e.preventDefault();
-    addComment(value._id, comment, setComment, setShow);
+    if (value?._id) addComment(value._id, comment, setComment, setShow);
   };
 
   const [showModal, setShowModal] = useState(false);
@@ -48,7 +47,7 @@ const PostCard = ({ type, value }) => {
   };
 
   const deleteHandler = () => {
-    deletePost(value._id);
+    if (value?._id) deletePost(value._id);
   };
 
   const [showInput, setShowInput] = useState(false);
@@ -57,12 +56,13 @@ const PostCard = ({ type, value }) => {
     setShowInput(true);
   };
 
-  const [caption, setCaption] = useState(value.caption ? value.caption : "");
+  const [caption, setCaption] = useState(value?.caption ? value.caption : "");
   const [captionLoading, setCaptionLoading] = useState(false);
 
   async function updateCaption() {
     setCaptionLoading(true);
     try {
+      if (!value?._id) return;
       const { data } = await axios.put("/api/post/" + value._id, { caption });
 
       toast.success(data.message);
@@ -70,7 +70,7 @@ const PostCard = ({ type, value }) => {
       setShowInput(false);
       setCaptionLoading(false);
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error?.response?.data?.message || "Error updating caption");
       setCaptionLoading(false);
     }
   }
@@ -86,7 +86,7 @@ const PostCard = ({ type, value }) => {
   return (
     <div className="bg-gray-100 flex items-center justify-center pt-3 pb-14">
       <SimpleModal isOpen={showModal} onClose={closeModal}>
-        <LikeModal isOpen={open} onClose={oncloseLIke} id={value._id} />
+        <LikeModal isOpen={open} onClose={oncloseLIke} id={value?._id} />
         <div className="flex flex-col items-center justify-center gap-3">
           <button
             onClick={editHandler}
@@ -107,25 +107,25 @@ const PostCard = ({ type, value }) => {
         <div className="flex items-center space-x-2">
           <Link
             className="flex items-center space-x-2"
-            to={`/user/${value.owner._id}`}
+            to={`/user/${value?.owner?._id ?? ""}`}
           >
             <img
-              src={value.owner.profilePic.url}
+              src={value?.owner?.profilePic?.url ?? ""}
               alt=""
               className="w-8 h-8 rounded-full"
             />
 
-            {onlineUsers.includes(value.owner._id) && (
+            {value?.owner?._id && onlineUsers?.includes(value.owner._id) && (
               <div className="text-5xl font-bold text-green-400">.</div>
             )}
 
             <div>
-              <p className="text-gray-800 font-semibold">{value.owner.name}</p>
+              <p className="text-gray-800 font-semibold">{value?.owner?.name ?? ""}</p>
               <div className="text-gray-500 text-sm">{formatDate}</div>
             </div>
           </Link>
 
-          {user && value.owner._id === user._id && (
+          {user && value?.owner?._id === user._id && (
             <div className="text-gray-500 cursor-pointer">
               <button
                 onClick={() => setShowModal(true)}
@@ -164,20 +164,20 @@ const PostCard = ({ type, value }) => {
               </button>
             </>
           ) : (
-            <p className="text-gray-800">{value.caption}</p>
+            <p className="text-gray-800">{value?.caption ?? ""}</p>
           )}
         </div>
 
         <div className="mb-4">
           {type === "post" ? (
             <img
-              src={value.post.url}
+              src={value?.post?.url ?? ""}
               alt=""
               className="object-cover rounded-md"
             />
           ) : (
             <video
-              src={value.post.url}
+              src={value?.post?.url ?? ""}
               alt=""
               className="w-[450px] h-[600px] object-cover rounded-md"
               autoPlay
@@ -197,7 +197,7 @@ const PostCard = ({ type, value }) => {
               className="hover:bg-gray-50 rounded-full p-1"
               onClick={() => setOpen(true)}
             >
-              {value.likes.length} likes
+              {(value?.likes?.length ?? 0)} likes
             </button>
           </div>
           <button
@@ -205,7 +205,7 @@ const PostCard = ({ type, value }) => {
             onClick={() => setShow(!show)}
           >
             <BsChatFill />
-            <span>{value.comments.length} comments</span>
+            <span>{(value?.comments?.length ?? 0)} comments</span>
           </button>
         </div>
         {show && (
@@ -228,14 +228,14 @@ const PostCard = ({ type, value }) => {
         <hr className="mt-2 mb-2" />
         <div className="mt-4">
           <div className="comments max-h-[200px] overflow-y-auto">
-            {value.comments && value.comments.length > 0 ? (
+            {value?.comments && value.comments.length > 0 ? (
               value.comments.map((e) => (
                 <Comment
                   value={e}
                   key={e._id}
                   user={user}
-                  owner={value.owner._id}
-                  id={value._id}
+                  owner={value?.owner?._id}
+                  id={value?._id}
                 />
               ))
             ) : (
@@ -254,27 +254,32 @@ export const Comment = ({ value, user, owner, id }) => {
   const { deleteComment } = PostData();
 
   const deleteCommentHandler = () => {
-    deleteComment(id, value._id);
+    if (id && value?._id) deleteComment(id, value._id);
   };
+  
+  if (!value || !value.user) {
+    return null;
+  }
+  
   return (
     <div className="flex items-center space-x-2 mt-2">
-      <Link to={`/user/${value.user._id}`}>
+      <Link to={`/user/${value.user?._id ?? ""}`}>
         <img
-          src={value.user.profilePic.url}
+          src={value.user?.profilePic?.url ?? ""}
           className="w-8 h-8 rounded-full"
           alt=""
         />
       </Link>
       <div>
-        <p className="text-gray-800 font-semibold">{value.user.name}</p>
-        <p className="text-gray-500 text-sm">{value.comment}</p>
+        <p className="text-gray-800 font-semibold">{value.user?.name ?? ""}</p>
+        <p className="text-gray-500 text-sm">{value?.comment ?? ""}</p>
       </div>
 
-      {user && owner === user._id ? (
+      {!user ? null : owner === user._id ? (
         ""
       ) : (
         <>
-          {user && value.user._id === user._id && (
+          {value.user?._id === user._id && (
             <button onClick={deleteCommentHandler} className="text-red-500">
               <MdDelete />
             </button>
@@ -282,7 +287,7 @@ export const Comment = ({ value, user, owner, id }) => {
         </>
       )}
 
-      {user && owner === user._id && (
+      {!user ? null : owner === user._id && (
         <button onClick={deleteCommentHandler} className="text-red-500">
           <MdDelete />
         </button>
