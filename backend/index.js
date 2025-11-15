@@ -14,10 +14,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from parent directory
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+// Load environment variables from parent directory (only if .env exists)
+// On Render, env vars come from dashboard, not from .env file
+dotenv.config({ path: path.resolve(__dirname, '../.env'), override: false });
 
 console.log("Environment check - TMDB_API_KEY exists:", !!process.env.TMDB_API_KEY);
+console.log("Environment check - MONGO_URI exists:", !!process.env.MONGO_URI);
 
 const url = `https://mern-social-3e3m.onrender.com`;
 const interval = 30000;
