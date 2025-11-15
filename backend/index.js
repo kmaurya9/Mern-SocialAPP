@@ -119,22 +119,15 @@ app.use("/api/profile", roleProfileRoutes);
 const rootDir = path.resolve();
 
 // Determine the correct frontend dist path
-// On Render, it might be in /opt/render/project/src/frontend/dist or /opt/render/project/frontend/dist
+// On Render, it might be in /opt/render/project/frontend/dist
 const frontendDistPath = path.join(rootDir, "frontend", "dist");
-const frontendDistPathWithSrc = path.join(rootDir, "src", "frontend", "dist");
 
-// Serve static files - try the standard path first
+// Serve static files
 app.use(express.static(frontendDistPath));
 
 // Catch-all route for frontend (but not for /api routes)
 app.get("*", (req, res) => {
-  const indexPath = path.join(frontendDistPath, "index.html");
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      // Try alternate path if first one fails
-      res.sendFile(path.join(frontendDistPathWithSrc, "index.html"));
-    }
-  });
+  res.sendFile(path.join(frontendDistPath, "index.html"));
 });
 
 server.listen(port, () => {
