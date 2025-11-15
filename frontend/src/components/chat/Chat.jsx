@@ -4,11 +4,13 @@ import { BsSendCheck } from "react-icons/bs";
 
 const Chat = ({ chat, setSelectedChat, isOnline }) => {
   const { user: loggedInUser } = UserData();
-  let user;
-  if (chat) user = chat.users[0];
+  let user = null;
+  if (chat && Array.isArray(chat.users) && chat.users.length > 0) {
+    user = chat.users[0];
+  }
   return (
     <div>
-      {user && (
+      {user ? (
         <div
           className="bg-gray-200 py-2 px-1 rounded-md cursor-pointer mt-3"
           onClick={() => setSelectedChat(chat)}
@@ -34,6 +36,8 @@ const Chat = ({ chat, setSelectedChat, isOnline }) => {
             {chat.latestMessage.text.slice(0, 18)}...
           </span>
         </div>
+      ) : (
+        <div className="bg-gray-200 py-2 px-1 rounded-md mt-3 text-red-500">No user found in chat</div>
       )}
     </div>
   );

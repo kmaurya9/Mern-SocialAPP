@@ -41,6 +41,11 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   async function fetchMessages() {
     setLoading(true);
     try {
+      if (!selectedChat || !Array.isArray(selectedChat.users) || selectedChat.users.length === 0) {
+        setMessages([]);
+        setLoading(false);
+        return;
+      }
       const { data } = await axios.get(
         "/api/messages/" + selectedChat.users[0]._id
       );
@@ -69,7 +74,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   }, [messages]);
   return (
     <div>
-      {selectedChat && (
+      {selectedChat && Array.isArray(selectedChat.users) && selectedChat.users.length > 0 ? (
         <div className="flex flex-col">
           <div className="flex w-full h-12 items-center gap-3">
             <img
@@ -103,8 +108,10 @@ const MessageContainer = ({ selectedChat, setChats }) => {
             </>
           )}
         </div>
+      ) : (
+        <div className="text-red-500 p-4">No users found in this chat.</div>
       )}
-    </div>
+  </div>
   );
 };
 

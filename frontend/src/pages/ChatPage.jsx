@@ -93,14 +93,17 @@ const ChatPage = ({ user }) => {
               </>
             ) : (
               <div className="flex flex-col justify-center items-center mt-2">
-                {chats.map((e) => (
-                  <Chat
-                    key={e._id}
-                    chat={e}
-                    setSelectedChat={setSelectedChat}
-                    isOnline={onlineUsers.includes(e.users[0]._id)}
-                  />
-                ))}
+                {chats.map((e) => {
+                  const otherUserId = Array.isArray(e.users) && e.users.length > 0 ? e.users[0]._id : null;
+                  return (
+                    <Chat
+                      key={e._id}
+                      chat={e}
+                      setSelectedChat={setSelectedChat}
+                      isOnline={otherUserId ? onlineUsers.includes(otherUserId) : false}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 import { Chat } from "../models/ChatModel.js";
 import { Messages } from "../models/Messages.js";
-import { getReciverSocketId, io } from "../socket/socket.js";
+import { getReciverSocketIds, io } from "../socket/socket.js";
 import TryCatch from "../utils/Trycatch.js";
 
 export const sendMessage = TryCatch(async (req, res) => {
@@ -44,10 +44,12 @@ export const sendMessage = TryCatch(async (req, res) => {
     },
   });
 
-  const reciverSocketId = getReciverSocketId(recieverId);
+  const reciverSocketIds = getReciverSocketIds(recieverId);
 
-  if (reciverSocketId) {
-    io.to(reciverSocketId).emit("newMessage", newMessage);
+  if (reciverSocketIds && reciverSocketIds.length > 0) {
+    reciverSocketIds.forEach((socketId) => {
+      io.to(socketId).emit("newMessage", newMessage);
+    });
   }
 
   res.status(201).json(newMessage);
