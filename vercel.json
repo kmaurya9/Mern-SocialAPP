@@ -2,13 +2,5 @@
   "version": 2,
   "name": "mern-social",
   "buildCommand": "npm install && cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "CLOUDINARY_NAME": "@cloudinary_name",
-    "CLOUDINARY_API_KEY": "@cloudinary_api_key",
-    "CLOUDINARY_API_SECRET": "@cloudinary_api_secret",
-    "TMDB_API_KEY": "@tmdb_api_key"
-  }
+  "outputDirectory": "frontend/dist"
 }
