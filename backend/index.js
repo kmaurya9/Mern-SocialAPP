@@ -122,12 +122,22 @@ const rootDir = path.resolve(__dirname, "..");
 // __dirname is backend folder, .. goes to root, then frontend/dist
 const frontendDistPath = path.join(rootDir, "frontend", "dist");
 
-// Serve static files
+console.log("Frontend dist path:", frontendDistPath);
+
+// Serve static files from dist folder
 app.use(express.static(frontendDistPath));
 
-// Catch-all route for frontend (but not for /api routes)
+// Catch-all route for SPA (must be after all API routes)
+// This handles React Router navigation
 app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendDistPath, "index.html"));
+  const indexPath = path.join(frontendDistPath, "index.html");
+  console.log("Serving index.html from:", indexPath);
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error("Error sending index.html:", err);
+      res.status(500).send("Error loading app");
+    }
+  });
 });
 
 server.listen(port, () => {
