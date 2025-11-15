@@ -174,13 +174,19 @@ export const createCuratorList = TryCatch(async (req, res) => {
     });
   }
 
-  const profile = await CuratorProfile.findOne({
+  let profile = await CuratorProfile.findOne({
     userId: req.user._id,
   });
 
+  // Create profile if it doesn't exist
   if (!profile) {
-    return res.status(404).json({
-      message: "Curator profile not found",
+    profile = await CuratorProfile.create({
+      userId: req.user._id,
+      curatedLists: [],
+      recommendations: [],
+      expertise: [],
+      followersCount: 0,
+      listsCount: 0,
     });
   }
 
@@ -204,13 +210,19 @@ export const createCuratorList = TryCatch(async (req, res) => {
 });
 
 export const getCuratorLists = TryCatch(async (req, res) => {
-  const profile = await CuratorProfile.findOne({
+  let profile = await CuratorProfile.findOne({
     userId: req.user._id,
   });
 
+  // Create profile if it doesn't exist
   if (!profile) {
-    return res.status(404).json({
-      message: "Curator profile not found",
+    profile = await CuratorProfile.create({
+      userId: req.user._id,
+      curatedLists: [],
+      recommendations: [],
+      expertise: [],
+      followersCount: 0,
+      listsCount: 0,
     });
   }
 
