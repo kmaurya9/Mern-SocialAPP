@@ -318,7 +318,12 @@ const CuratorDashboard = () => {
                             <div className="space-y-1">
                               {list.movies.map((movie) => (
                                 <div key={movie.movieId} className="flex justify-between items-center bg-gray-50 p-2 rounded text-xs">
-                                  <span className="truncate">{movie.movieTitle}</span>
+                                  <button
+                                    onClick={() => navigate(`/details/${movie.movieId}`)}
+                                    className="truncate text-left text-blue-600 hover:text-blue-800 hover:underline flex-1"
+                                  >
+                                    {movie.movieTitle}
+                                  </button>
                                   <button
                                     onClick={() => handleRemoveMovie(list.listId, movie.movieId)}
                                     className="text-red-500 hover:text-red-700 font-bold ml-2 flex-shrink-0"
