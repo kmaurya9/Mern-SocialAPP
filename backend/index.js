@@ -116,10 +116,10 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/profile", roleProfileRoutes);
 
-const rootDir = path.resolve();
+const rootDir = path.resolve(__dirname, "..");
 
 // Determine the correct frontend dist path
-// On Render, it might be in /opt/render/project/frontend/dist
+// __dirname is backend folder, .. goes to root, then frontend/dist
 const frontendDistPath = path.join(rootDir, "frontend", "dist");
 
 // Serve static files
