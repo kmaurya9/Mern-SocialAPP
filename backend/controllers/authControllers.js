@@ -57,11 +57,12 @@ export const registerUser = TryCatch(async (req, res) => {
     profilePic,
   });
 
-  generateToken(user._id, res);
+  const token = generateToken(user._id, res);
 
   res.status(201).json({
     message: "User Registered",
     user,
+    token,
   });
 });
 
@@ -82,11 +83,12 @@ export const loginUser = TryCatch(async (req, res) => {
       message: "Invalid Credentials",
     });
 
-  generateToken(user._id, res);
+  const token = generateToken(user._id, res);
 
   res.json({
     message: "User Logged in",
     user,
+    token,
   });
 });
 

@@ -11,6 +11,9 @@ const generateToken = (id, res) => {
     sameSite: "lax",
     secure: false,
   });
+
+  // Also return token in response for localStorage (enables tab-independent sessions)
+  return token;
 };
 
 export default generateToken;

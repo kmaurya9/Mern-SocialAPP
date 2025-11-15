@@ -9,10 +9,24 @@ export const UserContextProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Set authorization header from localStorage token on mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
+  }, []);
+
   async function registerUser(formdata, navigate, fetchPosts) {
     setLoading(true);
     try {
       const { data } = await axios.post("/api/auth/register", formdata);
+
+      // Store token in localStorage for tab-independent sessions
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+      }
 
       toast.success(data.message);
       setIsAuth(true);
@@ -34,6 +48,12 @@ export const UserContextProvider = ({ children }) => {
         password,
         navigate,
       });
+
+      // Store token in localStorage for tab-independent sessions
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+      }
 
       toast.success(data.message);
       setIsAuth(true);
@@ -65,16 +85,18 @@ export const UserContextProvider = ({ children }) => {
 
   async function logoutUser(navigate) {
     try {
-      const { data } = await axios.get("/api/auth/logout");
+      await axios.get("/api/auth/logout");
 
-      if (data.message) {
-        toast.success(data.message);
-        setUser(null);
-        setIsAuth(false);
-        navigate("/login");
-      }
+      // Clear token from localStorage (only affects this tab)
+      localStorage.removeItem("token");
+      delete axios.defaults.headers.common["Authorization"];
+
+      toast.success("Logged out successfully");
+      setUser(null);
+      setIsAuth(false);
+      navigate("/login");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Logout failed");
     }
   }
 
