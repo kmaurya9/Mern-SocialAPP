@@ -170,12 +170,12 @@ const CuratorDashboard = () => {
     }
   };
 
-  const handleRemoveMovie = async (movieId) => {
+  const handleRemoveMovie = async (listId, movieId) => {
     try {
-      await axios.delete(`/api/profile/curator/list/${selectedList.listId}/movie/${movieId}`);
+      await axios.delete(`/api/profile/curator/list/${listId}/movie/${movieId}`);
       
       setLists(lists.map(list => 
-        list.listId === selectedList.listId 
+        list.listId === listId 
           ? {
               ...list,
               movies: list.movies.filter(m => m.movieId !== movieId)
@@ -183,10 +183,12 @@ const CuratorDashboard = () => {
           : list
       ));
 
-      setSelectedList({
-        ...selectedList,
-        movies: selectedList.movies.filter(m => m.movieId !== movieId)
-      });
+      if (selectedList && selectedList.listId === listId) {
+        setSelectedList({
+          ...selectedList,
+          movies: selectedList.movies.filter(m => m.movieId !== movieId)
+        });
+      }
       
       toast.success('Movie removed from list!');
     } catch (error) {
@@ -318,11 +320,8 @@ const CuratorDashboard = () => {
                                 <div key={movie.movieId} className="flex justify-between items-center bg-gray-50 p-2 rounded text-xs">
                                   <span className="truncate">{movie.movieTitle}</span>
                                   <button
-                                    onClick={() => {
-                                      setSelectedList(list);
-                                      handleRemoveMovie(movie.movieId);
-                                    }}
-                                    className="text-red-500 hover:text-red-700 font-bold"
+                                    onClick={() => handleRemoveMovie(list.listId, movie.movieId)}
+                                    className="text-red-500 hover:text-red-700 font-bold ml-2 flex-shrink-0"
                                   >
                                     ×
                                   </button>
