@@ -14,6 +14,7 @@ import Search from "./pages/Search";
 import ChatPage from "./pages/ChatPage";
 import MovieDetails from "./pages/MovieDetails";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import About from "./pages/About";
 import CuratorDashboard from "./pages/CuratorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -31,16 +32,17 @@ const App = () => {
           
           <Routes>
             {/* Public routes - accessible without login */}
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<About />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/search" element={<Search />} />
             <Route path="/details/:id" element={<MovieDetails />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             
             {/* Auth routes */}
-            <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
+            <Route path="/login" element={!isAuth ? <Login /> : <About />} />
             <Route
               path="/register"
-              element={!isAuth ? <Register /> : <Home />}
+              element={!isAuth ? <Register /> : <About />}
             />
             
             {/* Protected routes - require login */}
