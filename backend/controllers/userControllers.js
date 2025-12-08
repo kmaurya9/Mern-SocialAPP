@@ -12,7 +12,7 @@ export const myProfile = TryCatch(async (req, res) => {
 });
 
 export const userProfile = TryCatch(async (req, res) => {
-  const user = await User.findById(req.params.id).select("-password");
+  const user = await User.findById(req.params.id).select("-password -email -gender");
 
   if (!user)
     return res.status(404).json({
@@ -78,9 +78,9 @@ export const followandUnfollowUser = TryCatch(async (req, res) => {
 
 export const userFollowerandFollowingData = TryCatch(async (req, res) => {
   const user = await User.findById(req.params.id)
-    .select("-password")
-    .populate("followers", "-password")
-    .populate("followings", "-password");
+    .select("-password -email -gender")
+    .populate("followers", "-password -email -gender")
+    .populate("followings", "-password -email -gender");
 
   const followers = user.followers;
   const followings = user.followings;
@@ -155,6 +155,25 @@ export const getAllUsers = TryCatch(async (req, res) => {
   }
   
   const users = await User.find(query).select("-password");
+  res.json(users);
+});
+
+export const searchPublicUsers = TryCatch(async (req, res) => {
+  const { search } = req.query;
+  
+  let query = {};
+  if (search) {
+    // Search by name only (public users don't search by email)
+    query = {
+      name: {
+        $regex: search,
+        $options: "i",
+      }
+    };
+  }
+  
+  // Return only public info: name, profilePic, followers count, followings count
+  const users = await User.find(query).select("name profilePic followers followings");
   res.json(users);
 });
 

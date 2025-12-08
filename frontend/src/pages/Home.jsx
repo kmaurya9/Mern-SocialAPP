@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import AddPost from "../components/AddPost";
 import PostCard from "../components/PostCard";
@@ -11,13 +11,18 @@ const Home = () => {
   const { posts, loading } = PostData();
   const { isAuth, user, loading: userLoading } = UserData();
 
-  // For logged-in users, show their posts first, then others
-  let sortedPosts = posts;
-  if (isAuth && user && posts && !userLoading) {
-    const userPosts = posts.filter((post) => post.owner._id === user._id);
-    const otherPosts = posts.filter((post) => post.owner._id !== user._id);
-    sortedPosts = [...userPosts, ...otherPosts];
-  }
+  // For logged-in users, show only their posts and posts from people they follow
+  const sortedPosts = useMemo(() => {
+    let result = posts;
+    if (isAuth && user && posts && !userLoading) {
+      const userPosts = posts.filter((post) => post.owner._id === user._id);
+      const followingPosts = posts.filter(
+        (post) => post.owner._id !== user._id && user.followings?.includes(post.owner._id)
+      );
+      result = [...userPosts, ...followingPosts];
+    }
+    return result;
+  }, [isAuth, user, posts, userLoading]);
 
   return (
     <>
@@ -69,11 +74,11 @@ const Home = () => {
               sortedPosts.map((e) => <PostCard value={e} key={e._id} type={"post"} />)
             ) : (
               <div className="text-center py-8 px-4">
-                <p className="text-gray-500 mb-4">No posts yet</p>
+                <p className="text-gray-500 mb-4">No posts from people you follow yet</p>
                 {isAuth && (
                   <>
                     <p className="text-sm text-gray-400 mb-6">
-                      Be the first to create a post!
+                      Follow more users to see their posts, or create your own!
                     </p>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
                       <h3 className="font-semibold text-gray-700 mb-3">Quick Tips:</h3>

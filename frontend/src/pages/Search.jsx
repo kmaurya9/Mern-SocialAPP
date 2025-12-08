@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { LoadingAnimation } from "../components/Loading";
@@ -14,94 +14,79 @@ const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { movies, searchMovies } = MovieData();
   const { isAuth } = UserData();
-  const debounceTimer = useRef(null);
 
-  // Get search query from URL on component mount
+  // Load search from URL params on mount
   useEffect(() => {
-    const query = searchParams.get("query");
-    const type = searchParams.get("type") || "users";
-    if (query) {
-      setSearch(query);
-      setSearchType(type);
-      if (type === "users") {
-        fetchUsers(query);
-      } else {
-        handleSearchMovies(query);
-      }
+    const queryParam = searchParams.get("query");
+    const typeParam = searchParams.get("type") || "users";
+    if (queryParam) {
+      setSearch(queryParam);
+      setSearchType(typeParam);
     }
   }, []);
 
-  // Auto-search when search input changes (with debounce)
-  useEffect(() => {
-    // Clear previous timer
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    // If search is empty, clear results
-    if (!search.trim()) {
-      setUsers([]);
-      searchMovies(""); // This will clear movies in context
-      return;
-    }
-
-    // Set new timer for debounced search
-    debounceTimer.current = setTimeout(() => {
-      setSearchParams({ query: search, type: searchType });
-      
-      if (searchType === "users") {
-        fetchUsers(search);
-      } else {
-        handleSearchMovies(search);
-      }
-    }, 500); // Wait 500ms after user stops typing
-
-    // Cleanup timer on unmount
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
-  }, [search, searchType]);
-
-  async function fetchUsers(query = search) {
+  // Search users - simple and direct like searchMovies
+  const searchUsers = async (query) => {
     setLoading(true);
     try {
-      const { data } = await axios.get("/api/user/all?search=" + query);
-      setUsers(data);
+      if (!query || query.trim() === "") {
+        // Clear results immediately when query is empty
+        setUsers([]);
+        setLoading(false);
+        return [];
+      }
+
+      console.log("[User Search] Searching for:", query);
+      
+      // Use public endpoint for anonymous users, protected endpoint for authenticated users
+      const endpoint = isAuth ? "/api/user/all?search=" + query : "/api/user/search/public?search=" + query;
+      const { data } = await axios.get(endpoint);
+      
+      console.log("[User Search] Found", data.length, "results");
+      setUsers(data || []);
       setLoading(false);
+      return data;
     } catch (error) {
-      console.log(error);
+      console.error("[User Search] Error:", error);
+      
+      let errorMessage = "Error searching users";
+      
+      if (error.response?.status === 400) {
+        errorMessage = error.response?.data?.message || "Invalid search query";
+      } else if (error.response?.status === 500) {
+        errorMessage = error.response?.data?.message || "Server error";
+      } else if (error.code === "ECONNABORTED") {
+        errorMessage = "Request timeout";
+      } else if (error.message === "Network Error" || !error.response) {
+        errorMessage = "Network error - Unable to connect";
+      }
+      
+      toast.error(errorMessage);
+      setUsers([]);
       setLoading(false);
-    }
-  }
-
-  async function handleSearchMovies(query = search) {
-    setLoading(true);
-    await searchMovies(query);
-    setLoading(false);
-  }
-
-  // Manual search function (used when Enter is pressed)
-  const handleSearch = () => {
-    if (!search.trim()) {
-      toast.error("Please enter a search query");
-      return;
-    }
-    
-    // Trigger search immediately (no debounce for manual search)
-    setSearchParams({ query: search, type: searchType });
-    
-    if (searchType === "users") {
-      fetchUsers(search);
-    } else {
-      handleSearchMovies(search);
     }
   };
 
+  // Search whenever input changes
+  useEffect(() => {
+    // Update URL params
+    if (search.trim()) {
+      setSearchParams({ query: search, type: searchType });
+    } else {
+      setSearchParams({});
+    }
+
+    if (searchType === "users") {
+      searchUsers(search);
+    } else {
+      searchMovies(search);
+    }
+  }, [search, searchType]);
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
-      handleSearch();
+      // Search is already happening on every keystroke, so just prevent default
+      e.preventDefault();
     }
   };
 
@@ -153,30 +138,63 @@ const Search = () => {
           <>
             {/* User Results */}
             {searchType === "users" && (
-              <div className="w-full max-w-2xl">
+              <div className="w-full max-w-2xl px-4">
                 <h2 className="text-xl font-bold mb-4 text-center">Users</h2>
                 {users && users.length > 0 ? (
-                  users.map((e) => (
-                    <Link
-                      key={e._id}
-                      className="mt-3 px-4 py-3 bg-white rounded-md flex items-center gap-3 hover:shadow-md transition-shadow"
-                      to={`/profile/${e._id}`}
-                    >
-                      <img
-                        src={e.profilePic.url}
-                        alt=""
-                        className="w-12 h-12 rounded-full"
-                      />
-                      <div>
-                        <p className="font-semibold">{e.name}</p>
-                        <p className="text-sm text-gray-600">{e.email}</p>
+                  <div className="space-y-2">
+                    {users.map((e) => (
+                      <div key={e._id}>
+                        {isAuth ? (
+                          <Link
+                            className="px-4 py-3 bg-white rounded-md flex items-center gap-3 hover:shadow-md transition-shadow cursor-pointer"
+                            to={`/profile/${e._id}`}
+                          >
+                            <img
+                              src={e.profilePic?.url || "/default-avatar.png"}
+                              alt=""
+                              className="w-12 h-12 rounded-full"
+                            />
+                            <div className="flex-1">
+                              <p className="font-semibold">{e.name}</p>
+                              {isAuth && <p className="text-sm text-gray-600">{e.email}</p>}
+                              {!isAuth && (
+                                <p className="text-sm text-gray-600">
+                                  {e.followers?.length || 0} followers · {e.followings?.length || 0} following
+                                </p>
+                              )}
+                            </div>
+                          </Link>
+                        ) : (
+                          <div className="px-4 py-3 bg-white rounded-md flex items-center gap-3 cursor-not-allowed opacity-70">
+                            <img
+                              src={e.profilePic?.url || "/default-avatar.png"}
+                              alt=""
+                              className="w-12 h-12 rounded-full"
+                            />
+                            <div className="flex-1">
+                              <p className="font-semibold">{e.name}</p>
+                              <p className="text-sm text-gray-600">
+                                {e.followers?.length || 0} followers · {e.followings?.length || 0} following
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => window.location.href = '/login'}
+                              className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                            >
+                              Login to View
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    </Link>
-                  ))
+                    ))}
+                  </div>
                 ) : (
-                  <p className="text-center text-gray-500">
-                    {search ? "No users found" : "Enter a name to search"}
-                  </p>
+                  <div className="bg-white rounded-md p-8 text-center">
+                    <p className="text-gray-500 mb-2">
+                      {search ? "No users found" : "Enter a name to search"}
+                    </p>
+                    {search && <p className="text-sm text-gray-400">Try a different search term</p>}
+                  </div>
                 )}
               </div>
             )}

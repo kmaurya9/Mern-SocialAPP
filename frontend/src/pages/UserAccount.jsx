@@ -19,6 +19,12 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   const [loading, setLoading] = useState(true);
 
+  const [followed, setFollowed] = useState(false);
+  const [show, setShow] = useState(false);
+  const [show1, setShow1] = useState(false);
+  const [followersData, setFollowersData] = useState([]);
+  const [followingsData, setFollowingsData] = useState([]);
+
   async function fetchUser() {
     try {
       const { data } = await axios.get("/api/user/" + params.id);
@@ -43,7 +49,18 @@ const UserAccount = ({ user: loggedInUser }) => {
     myPosts = posts.filter((post) => post.owner._id === user._id);
   }
 
-  const [followed, setFollowed] = useState(false);
+  // Only show posts if viewing own profile or if following the user
+  let visiblePosts = [];
+  if (user._id === loggedInUser._id) {
+    // Show all own posts
+    visiblePosts = myPosts;
+  } else if (followed) {
+    // Show posts only if following
+    visiblePosts = myPosts;
+  } else {
+    // Not following - no posts
+    visiblePosts = [];
+  }
 
   const { followUser } = UserData();
 
@@ -58,12 +75,6 @@ const UserAccount = ({ user: loggedInUser }) => {
   useEffect(() => {
     if (followers && followers.includes(loggedInUser._id)) setFollowed(true);
   }, [user]);
-
-  const [show, setShow] = useState(false);
-  const [show1, setShow1] = useState(false);
-
-  const [followersData, setFollowersData] = useState([]);
-  const [followingsData, setFollowingsData] = useState([]);
 
   async function followData() {
     try {
@@ -133,8 +144,12 @@ const UserAccount = ({ user: loggedInUser }) => {
                         </div>
                       )}
                     </p>
-                    <p className="text-gray-500 text-sm">{user.email}</p>
-                    <p className="text-gray-500 text-sm">{user.gender}</p>
+                    {user._id === loggedInUser._id && (
+                      <>
+                        <p className="text-gray-500 text-sm">{user.email}</p>
+                        <p className="text-gray-500 text-sm">{user.gender}</p>
+                      </>
+                    )}
                     <p
                       className="text-gray-500 text-sm cursor-pointer"
                       onClick={() => setShow(true)}
@@ -163,12 +178,14 @@ const UserAccount = ({ user: loggedInUser }) => {
                   </div>
                 </div>
 
-                {myPosts && myPosts.length > 0 ? (
-                  myPosts.map((e) => (
+                {visiblePosts && visiblePosts.length > 0 ? (
+                  visiblePosts.map((e) => (
                     <PostCard type={"post"} value={e} key={e._id} />
                   ))
                 ) : (
-                  <p>No Post Yet</p>
+                  <p className="text-center text-gray-500 mt-4">
+                    {user._id === loggedInUser._id ? "No Post Yet" : "Follow this user to see their posts"}
+                  </p>
                 )}
               </div>
             </>

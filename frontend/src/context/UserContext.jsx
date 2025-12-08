@@ -105,7 +105,14 @@ export const UserContextProvider = ({ children }) => {
       const { data } = await axios.post("/api/user/follow/" + id);
 
       toast.success(data.message);
-      fetchUser();
+      // Refetch the current user's data to update followings
+      const userData = await axios.get("/api/user/me");
+      setUser(userData.data);
+      
+      // Also call the passed fetchUser if provided (for refreshing other data)
+      if (fetchUser) {
+        fetchUser();
+      }
     } catch (error) {
       toast.error(error.response.data.message);
     }

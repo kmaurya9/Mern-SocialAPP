@@ -8,6 +8,7 @@ import {
   userFollowerandFollowingData,
   userProfile,
   getAllUsers,
+  searchPublicUsers,
   updateUserRole,
   deleteUser,
 } from "../controllers/userControllers.js";
@@ -15,6 +16,10 @@ import uploadFile from "../middlewares/multer.js";
 
 const router = express.Router();
 
+// Public route - search users without auth
+router.get("/search/public", searchPublicUsers);
+
+// Protected routes
 router.get("/all", isAuth, getAllUsers);
 router.get("/me", isAuth, myProfile);
 router.get("/:id", isAuth, userProfile);
