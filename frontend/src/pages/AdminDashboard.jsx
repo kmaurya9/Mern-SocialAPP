@@ -130,38 +130,63 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Recent Users */}
+        {/* Recent Users - With Numeric Right Justification */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-bold mb-4">All Users ({stats.total})</h2>
           {loading ? (
             <p className="text-gray-500">Loading...</p>
           ) : users.length > 0 ? (
-            <div className="space-y-3">
-              {users.slice(0, 10).map(u => (
-                <div key={u._id} className="flex justify-between items-center border-b pb-3">
-                  <div>
-                    <p className="text-gray-900 font-semibold">{u.name}</p>
-                    <p className="text-sm text-gray-500">{u.email}</p>
+            <div className="overflow-x-auto">
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-4 font-semibold text-gray-700 pb-3 border-b-2 border-gray-300 mb-3">
+                <div className="col-span-4 text-left">User Name</div>
+                <div className="col-span-3 text-left">Email</div>
+                <div className="col-span-1 text-right">Followers</div>
+                <div className="col-span-1 text-right">Following</div>
+                <div className="col-span-3 text-center">Actions</div>
+              </div>
+
+              {/* Table Rows */}
+              <div className="space-y-2">
+                {users.slice(0, 10).map(u => (
+                  <div key={u._id} className="grid grid-cols-12 gap-4 items-center border-b pb-3 hover:bg-gray-50 p-2 rounded">
+                    {/* Text Content - Left Justified */}
+                    <div className="col-span-4 text-left">
+                      <p className="text-gray-900 font-semibold">{u.name}</p>
+                    </div>
+                    <div className="col-span-3 text-left">
+                      <p className="text-sm text-gray-500">{u.email}</p>
+                    </div>
+                    
+                    {/* Numeric Content - Right Justified */}
+                    <div className="col-span-1 text-right">
+                      <p className="font-bold text-green-600">{u.followers?.length || 0}</p>
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <p className="font-bold text-purple-600">{u.followings?.length || 0}</p>
+                    </div>
+
+                    {/* Actions - Right Aligned */}
+                    <div className="col-span-3 flex gap-2 items-center justify-end">
+                      <select 
+                        value={u.role} 
+                        onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                        className="px-3 py-1 bg-gray-200 rounded text-sm"
+                      >
+                        <option value="viewer">Viewer</option>
+                        <option value="curator">Curator</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      <button
+                        onClick={() => handleDeleteUser(u._id, u.name)}
+                        className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm transition whitespace-nowrap"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <select 
-                      value={u.role} 
-                      onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                      className="px-3 py-1 bg-gray-200 rounded text-sm"
-                    >
-                      <option value="viewer">Viewer</option>
-                      <option value="curator">Curator</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                    <button
-                      onClick={() => handleDeleteUser(u._id, u.name)}
-                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm transition"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
             <p className="text-gray-500">No users found</p>
